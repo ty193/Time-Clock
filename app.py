@@ -3,8 +3,10 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
 
 from forms import UserAddForm, UserEditForm, LoginForm
+from models import db, connect_db, Employee, Time
 
 CURR_USER_KEY = "curr_user"
 
@@ -13,13 +15,13 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ.get('DATABASE_URL', 'postgres:///time'))
 
-app.config['SQLALCHEMY_TRACK_MODIFICATION'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
-# connect_db(app)
+connect_db(app)
 
 
 ###################################################################################
@@ -31,16 +33,16 @@ def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
 
     if CURR_USER_KEY in session:
-        g.user = User.query.get(session[CURR_USER_KEY])
+        g.user = Employee.query.get(session[CURR_USER_KEY])
 
     else:
         g.user = None
 
 
-def do_login(user):
+def do_login(employee):
     """Log in user."""
 
-    session[CURR_USER_KEY] = user.id
+    session[CURR_USER_KEY] = employee.id
 
 
 def do_logout():
@@ -67,9 +69,11 @@ def signup():
 
     if form.validate_on_submit():
         try:
-            user = User.signup(
+            employee = Employee.signup(
+                name=form.name.data,
                 username=form.username.data,
                 password=form.password.data,
+                admin=form.admin.data,
             )
             db.session.commit()
 
@@ -77,7 +81,7 @@ def signup():
             flash("Username already taken", 'danger')
             return render_template('users/signup.html', form=form)
 
-        do_login(user)
+        do_login(employee)
 
         return redirect("/")
 
@@ -92,15 +96,15 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        user = User.authenticate(form.username.data,
-                                 form.password.data)
+        employee = Employee.authenticate(form.username.data,
+                                         form.password.data)
 
-        if user:
-            do_login(user)
-            flash(f"Hello, {user.username}!", "success")
+        if employee:
+            do_login(employee)
+            flash(f"Hello, {employee.name}!", "success")
             return redirect("/")
 
-        flash("Invalid credentials.", 'danger')
+        flash("Invalid credentials.", "danger")
 
     return render_template('users/login.html', form=form)
 
@@ -119,10 +123,22 @@ def logout():
 # Employee routes
 
 @app.route('/')
-def punch_clock():
-    """Return a page with button to punch in and out."""
+def home():
+    """Return home page."""
 
-    return render_template('users/punch.html')
+    return render_template('home.html')
+
+
+@app.route('/time-clock', methods=['POST'])
+def time_clock():
+
+    if not g.user:
+        flash("Access unuthorized.", "danger")
+        return redirect("/")
+
+    
+
+    return render_template('/users/punch.html')
 
 
 @app.route('/pay-period')
@@ -135,3 +151,13 @@ def pay_period():
 # @app.route("/time")
 # def show_employees_hours():
 
+
+@app.after_request
+def add_header(req):
+    """Add non-caching headers on every request."""
+
+    req.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    req.headers["Pragma"] = "no-cache"
+    req.headers["Expires"] = "0"
+    req.headers['Cache-Control'] = 'public, max-age=0'
+    return req
