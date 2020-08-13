@@ -6,14 +6,20 @@
 
 <div class="row justify-content-md-center">
     <div class="col-md-7 col-lg-5">
-        <p><h2 class="join-message">Choose a pay period.</h2></p>
-        <p class="pay-period"><a href="hours/1">July 7, 2020-August 13, 2020</a></p>
-        <p class="pay-period"><a href="hours/1">August 14, 2020-August 20, 2020</a></p>
-        <p class="pay-period"><a href="hours/1">August 21, 2020-August 27, 2020</a></p>
-        <p class="pay-period"><a href="hours/1">August 28, 2020-September 3, 2020</a></p>
-        <p class="pay-period"><a href="hours/1">September 11, 2020-September 17, 2020</a></p>
-        <p class="pay-period"><a href="hours/1">September 18, 2020-September 24, 2020</a></p>
-        <p class="pay-period"><a href="hours/1">September 25, 2020-October 1, 2020</a></p>
+        <p><h2 class="join-message">Enter pay period start and end date.</h2></p>
+
+        <form method="POST" id="time_period_form">
+            {{ form.hidden_tag() }}
+
+            {% for field in form if field.widget.input_type != 'hidden' %}
+                {% for error in field.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+                {{ field(placeholder=field.label.text, class="form-control") }}
+            {% endfor %}
+
+            <button class="btn btn-primary btn-block btn-lg">Submit</button>
+        </form>
     </div>
 </div>
 

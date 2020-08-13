@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
-from forms import UserAddForm, UserEditForm, LoginForm
+from forms import UserAddForm, UserEditForm, LoginForm, TimePeriodForm
 from models import db, connect_db, Employee, Time
 
 CURR_USER_KEY = "curr_user"
@@ -104,7 +104,7 @@ def login():
             flash(f"Hello, {employee.name}!", "success")
             return redirect("/")
 
-        flash("Invalid credentials.", "danger")
+        flash("Invalid credentials.", 'danger')
 
     return render_template('users/login.html', form=form)
 
@@ -141,11 +141,13 @@ def time_clock():
     return render_template('/users/punch.html')
 
 
-@app.route('/pay-period')
+@app.route('/pay-period', methods=["GET", "POST"])
 def pay_period():
     """Return a page to select a pay period"""
 
-    return render_template('pay_period.html')
+    form = TimePeriodForm()
+
+    return render_template('pay_period.html', form=form)
 
 
 # @app.route("/time")

@@ -24,16 +24,16 @@ class Time(db.Model):
         db.ForeignKey('employees.id'),
     )
 
-    date = db.Column(
-        db.DateTime,
-    )
+    employee = db.relationship('Employee')
 
     clock_in = db.Column(
-        db.Float,
+        db.DateTime,
+        index=True,
     )
 
     clock_out = db.Column(
-        db.Float,
+        db.DateTime,
+        index=True,
     )
 
 
