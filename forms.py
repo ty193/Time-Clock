@@ -45,8 +45,8 @@ class TimeClockForm(FlaskForm):
 class TimePeriodForm(FlaskForm):
     """Time period select form."""
 
-    start = DateField('Start Date', validators=[DataRequired()])
-    end = DateField('End Date', validators=[DataRequired()])
+    start = StringField('Start Date', validators=[DataRequired()])
+    end = StringField('End Date', validators=[DataRequired()])
 
 
 

@@ -181,24 +181,51 @@ def pay_period():
 
     form = TimePeriodForm()
 
-    emps = (Employee
+    if request.method == 'POST': 
+        start = datetime.strptime(form.start.data, '%m-%d-%Y').date()
+        end_date = datetime.strptime(form.end.data, '%m-%d-%Y').date() + timedelta(days=1)
+        times = (Time
             .query
-            .all())
-    hours = {}
-    for emp in emps:
-        hours[emp] = 0
-
-    # print(hours)
-
-
-    time = (Time
-            .query
-            .filter(Time.created_time <= datetime.today())
+            .filter(Time.created_time > start)
+            .filter(Time.created_time < end_date)
             .all())
 
-    print(time)
+        emps = (Employee
+            .query
+            .all())
 
-    return render_template('pay_period.html', form=form)
+        hours = {}
+
+        for emp in emps:
+            hours[emp.id] = 0
+        print(hours)
+        for time in times:
+            if time.clock_out and time.clock_in:
+                diff = time.clock_out - time.clock_in
+                employee_hours = diff.seconds/60/60/60
+                hours[time.employee_id] = round(hours[time.employee_id] + employee_hours, 20)
+
+        print(hours)
+        employee_hours = []
+        for emp in emps:
+            employee_hours.append({'name': emp.name, 'hours': hours[emp.id]})
+        print(employee_hours)
+
+        return render_template('pay_period.html', form=form, employee_hours=employee_hours)
+    else: 
+        return render_template('pay_period.html', form=form, employee_hours=[])
+        
+    # print(time)
+
+
+    # # time = (Time
+    # #         .query
+    # #         .filter(Time.created_time <= datetime.today())
+    # #         .all())
+
+    # # print(time)
+
+    # return render_template('pay_period.html', form=form)
 
 
 # @app.route("/time")
