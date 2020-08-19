@@ -4,8 +4,9 @@ from flask import Flask, render_template, request, flash, redirect, session, g, 
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime
+from sqlalchemy import null
 
-from forms import UserAddForm, UserEditForm, LoginForm, TimePeriodForm
+from forms import UserAddForm, UserEditForm, LoginForm, TimePeriodForm, TimeClockForm
 from models import db, connect_db, Employee, Time
 
 CURR_USER_KEY = "curr_user"
@@ -129,16 +130,49 @@ def home():
     return render_template('home.html')
 
 
-@app.route('/time-clock', methods=['POST'])
+@app.route('/time-clock', methods=['GET', 'POST'])
 def time_clock():
+
+    form = TimeClockForm()
 
     if not g.user:
         flash("Access unuthorized.", "danger")
         return redirect("/")
-
-    
-
-    return render_template('/users/punch.html')
+    print(request.method, "HELLO")
+    if request.method == 'POST':
+        action = "clock_in" if form.clock_in.data else "clock_out"
+        print(action)
+        if action == "clock_in":
+            time = Time(
+                employee_id=g.user.id,
+                clock_in=datetime.date(),
+                clock_out=null(),
+                created_time=datetime.date(),
+            )
+            db.session.add(time)
+            db.session.commit()
+        else:
+            times = (Time
+                    .query
+                    .filter(Time.employee_id == g.user.id)
+                    .order_by(Time.created_time.desc())
+                    .limit(1)
+                    .all())
+            if times[0]:
+                time = times[0]
+                time.clock_out = datetime.utcnow()
+                db.session.commit()
+        return redirect('/')
+    else:
+        clocked_in = Time.clocked_in(g.user.id)
+        should_clock_in = True
+        print(clocked_in)
+        if clocked_in:
+            should_clock_in = False
+            clocked_in = "Punch out!"
+        else:
+            clocked_in = "Punch in!"
+        return render_template('/users/punch.html', form=form, clocked_in=clocked_in, should_clock_in=should_clock_in)
 
 
 @app.route('/pay-period', methods=["GET", "POST"])
@@ -147,6 +181,22 @@ def pay_period():
 
     form = TimePeriodForm()
 
+    emps = (Employee
+            .query
+            .all())
+    hours = {}
+    for emp in emps:
+        hours[emp] = 0
+
+    # print(hours)
+
+
+    time = (Time
+            .query
+            .filter_by(created_time='2020-08-15', )
+            .all())
+
+    print(time)
     return render_template('pay_period.html', form=form)
 
 

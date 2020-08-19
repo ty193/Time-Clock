@@ -37,6 +37,11 @@ class LoginForm(FlaskForm):
 #     """Sends Date and time to database"""
 
 
+class TimeClockForm(FlaskForm):
+    """Time period select form."""
+
+    clock_in = BooleanField("Clock in")
+
 class TimePeriodForm(FlaskForm):
     """Time period select form."""
 

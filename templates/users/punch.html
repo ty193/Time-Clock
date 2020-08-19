@@ -8,8 +8,9 @@
     <div class="col-md-7 col-lg-5">
         <h2 class="join-message">Punch the clock here.</h2>
 
-        <form action="POST" id="punch-form">
-            <button class="btn btn-success btn-block btn-lg">Punch in!</button>
+        <form method="POST" id="punch-form">
+            {{form.clock_in(checked=should_clock_in, style="visibility: hidden;")}}
+            <button class="btn btn-success btn-block btn-lg">{{clocked_in}}</button>
         </form>
     </div>
 </div>

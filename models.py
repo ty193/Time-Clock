@@ -22,21 +22,38 @@ class Time(db.Model):
     employee_id = db.Column(
         db.Integer,
         db.ForeignKey('employees.id'),
+        index=True,
     )
 
     employee = db.relationship('Employee')
 
     clock_in = db.Column(
         db.DateTime,
-        index=True,
     )
 
     clock_out = db.Column(
         db.DateTime,
+    )
+
+    created_time = db.Column(
+        db.DateTime,
         index=True,
     )
 
-
+    @classmethod
+    def clocked_in(cls, employee_id):
+        time = (Time
+                .query
+                .filter(Time.employee_id == employee_id)
+                .order_by(Time.created_time.desc())
+                .limit(1)
+                .all())
+        if time and time[0].clock_out is None:
+            return True
+        else:
+            return False
+            
+        
 class Employee(db.Model):
     """Employees in the system."""
 
