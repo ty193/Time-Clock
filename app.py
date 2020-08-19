@@ -3,7 +3,7 @@ import os
 from flask import Flask, render_template, request, flash, redirect, session, g, abort
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import null
 
 from forms import UserAddForm, UserEditForm, LoginForm, TimePeriodForm, TimeClockForm
@@ -145,9 +145,9 @@ def time_clock():
         if action == "clock_in":
             time = Time(
                 employee_id=g.user.id,
-                clock_in=datetime.date(),
+                clock_in=datetime.utcnow(),
                 clock_out=null(),
-                created_time=datetime.date(),
+                created_time=datetime.utcnow(),
             )
             db.session.add(time)
             db.session.commit()
@@ -193,10 +193,11 @@ def pay_period():
 
     time = (Time
             .query
-            .filter_by(created_time='2020-08-15', )
+            .filter(Time.created_time <= datetime.today())
             .all())
 
     print(time)
+
     return render_template('pay_period.html', form=form)
 
 
