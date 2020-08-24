@@ -138,10 +138,9 @@ def time_clock():
     if not g.user:
         flash("Access unuthorized.", "danger")
         return redirect("/")
-    print(request.method, "HELLO")
     if request.method == 'POST':
         action = "clock_in" if form.clock_in.data else "clock_out"
-        print(action)
+        punch_action = "clocked in" if form.clock_in.data else "clocked out"
         if action == "clock_in":
             time = Time(
                 employee_id=g.user.id,
@@ -153,20 +152,21 @@ def time_clock():
             db.session.commit()
         else:
             times = (Time
-                    .query
-                    .filter(Time.employee_id == g.user.id)
-                    .order_by(Time.created_time.desc())
-                    .limit(1)
-                    .all())
+                     .query
+                     .filter(Time.employee_id == g.user.id)
+                     .order_by(Time.created_time.desc())
+                     .limit(1)
+                     .all())
             if times[0]:
                 time = times[0]
                 time.clock_out = datetime.utcnow()
                 db.session.commit()
+        flash(f"You have successfully {punch_action}.", 'primary')
         return redirect('/')
     else:
         clocked_in = Time.clocked_in(g.user.id)
         should_clock_in = True
-        print(clocked_in)
+
         if clocked_in:
             should_clock_in = False
             clocked_in = "Punch out!"
@@ -181,55 +181,73 @@ def pay_period():
 
     form = TimePeriodForm()
 
-    if request.method == 'POST': 
+    if CURR_USER_KEY in session:
+        admin = g.user.admin
+
+    if admin != True:
+        flash("Access unuthorized.", "danger")
+        return redirect("/")
+
+    if request.method == 'POST':
         start = datetime.strptime(form.start.data, '%m-%d-%Y').date()
-        end_date = datetime.strptime(form.end.data, '%m-%d-%Y').date() + timedelta(days=1)
+        end_date = datetime.strptime(
+            form.end.data, '%m-%d-%Y').date() + timedelta(days=1)
         times = (Time
-            .query
-            .filter(Time.created_time > start)
-            .filter(Time.created_time < end_date)
-            .all())
+                 .query
+                 .filter(Time.created_time > start)
+                 .filter(Time.created_time < end_date)
+                 .all())
 
         emps = (Employee
-            .query
-            .all())
+                .query
+                .all())
 
         hours = {}
 
         for emp in emps:
             hours[emp.id] = 0
-        print(hours)
+
         for time in times:
             if time.clock_out and time.clock_in:
                 diff = time.clock_out - time.clock_in
                 employee_hours = diff.seconds/60/60/60
-                hours[time.employee_id] = round(hours[time.employee_id] + employee_hours, 20)
+                hours[time.employee_id] = round(
+                    hours[time.employee_id] + employee_hours, 2)
 
-        print(hours)
         employee_hours = []
         for emp in emps:
             employee_hours.append({'name': emp.name, 'hours': hours[emp.id]})
-        print(employee_hours)
 
         return render_template('pay_period.html', form=form, employee_hours=employee_hours)
-    else: 
+    else:
         return render_template('pay_period.html', form=form, employee_hours=[])
-        
-    # print(time)
 
 
-    # # time = (Time
-    # #         .query
-    # #         .filter(Time.created_time <= datetime.today())
-    # #         .all())
+@app.route('/employees')
+def employees():
+    """Show all employee data."""
 
-    # # print(time)
+    emps = (Employee
+                .query
+                .all())
+    
+    return render_template('users/employees.html', emps=emps)
 
-    # return render_template('pay_period.html', form=form)
 
+@app.route('/employee/<int:employee_id>/delete', methods=["POST"])
+def employee_delete(employee_id):
+    """Delete a message."""
 
-# @app.route("/time")
-# def show_employees_hours():
+    emp = Employee.query.get(employee_id)
+    time = Time.query.filter_by(employee_id = emp.id).all()
+    print(emp)
+    print(time)
+
+    db.session.delete(time)
+    db.session.delete(emp)
+    db.session.commit()
+
+    return redirect("/employees")
 
 
 @app.after_request

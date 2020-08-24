@@ -25,8 +25,11 @@
         </div>
         <ul class="nav navbar-nav navbar-right">
             {% if not g.user %}
-            <li><a href="/signup">Sign up</a></li>
             <li><a href="/login">Log in</a></li>
+            {% elif g.user.admin %}
+            <li><a href="/employees">View Employees</a></li>
+            <li><a href="/signup">Add Employee</a></li>
+            <li><a href="/logout">Log out</a></li>
             {% else %}
             <li><a href="/logout">Log out</a></li>
             {% endif %}

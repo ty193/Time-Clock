@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block body_class %}onboarding{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-md-center">
+    <div class="col-md-7 col-lg-5 employee">
+        <p><h2 class="join-message">Click delete to remove an amployee.</h2></p>
+
+            {% for emp in emps %}
+                <p class="employee">
+                    {{ emp.name }}
+                    <form method="POST" action="/employee/{{ emp.id }}/delete">
+                        <button class="btn btn-outline-danger btn-md">Delete</button>
+                    </form>
+                </p>
+            {% endfor %}
+       
+    </div>
+</div>
+
+{% endblock %}
