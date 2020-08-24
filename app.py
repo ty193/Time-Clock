@@ -55,22 +55,20 @@ def do_logout():
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
-    """Handle user signup.
+    """Add Employee to the database."""
 
-    Create new user and add to DB. Redirect to home page.
-
-    If form not valid, present form.
-
-    If there already is a user with that username: flash message
-    and re-present form.
-    """
     if CURR_USER_KEY in session:
-        del session[CURR_USER_KEY]
+        admin = g.user.admin
+
+    if admin != True:
+        flash("Access unuthorized.", "danger")
+        return redirect("/")
+
     form = UserAddForm()
 
     if form.validate_on_submit():
         try:
-            employee = Employee.signup(
+            Employee.signup(
                 name=form.name.data,
                 username=form.username.data,
                 password=form.password.data,
@@ -82,8 +80,7 @@ def signup():
             flash("Username already taken", 'danger')
             return render_template('users/signup.html', form=form)
 
-        do_login(employee)
-
+        flash("Employee Added!", "primary")
         return redirect("/")
 
     else:
@@ -92,7 +89,7 @@ def signup():
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
-    """Handle user login."""
+    """Handle Employee login."""
 
     form = LoginForm()
 
@@ -175,6 +172,10 @@ def time_clock():
         return render_template('/users/punch.html', form=form, clocked_in=clocked_in, should_clock_in=should_clock_in)
 
 
+###################################################################################
+# Admin routes
+
+
 @app.route('/pay-period', methods=["GET", "POST"])
 def pay_period():
     """Return a page to select a pay period"""
@@ -227,6 +228,13 @@ def pay_period():
 def employees():
     """Show all employee data."""
 
+    if CURR_USER_KEY in session:
+        admin = g.user.admin
+
+    if admin != True:
+        flash("Access unuthorized.", "danger")
+        return redirect("/")
+
     emps = (Employee
                 .query
                 .all())
@@ -238,12 +246,20 @@ def employees():
 def employee_delete(employee_id):
     """Delete a message."""
 
+    if CURR_USER_KEY in session:
+        admin = g.user.admin
+
+    if admin != True:
+        flash("Access unuthorized.", "danger")
+        return redirect("/")
+
     emp = Employee.query.get(employee_id)
     time = Time.query.filter_by(employee_id = emp.id).all()
     print(emp)
     print(time)
 
-    db.session.delete(time)
+    for row in time:
+        db.session.delete(row)
     db.session.delete(emp)
     db.session.commit()
 

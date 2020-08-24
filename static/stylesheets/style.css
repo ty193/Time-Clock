@@ -20,6 +20,11 @@ body.error-404 {
 	cursor: pointer;
 }
 
+.join-message {
+	margin-top: 100px;
+	text-align: center;
+}
+
 /* ======================= Nav */
 
 .navbar {
@@ -80,13 +85,6 @@ ul.nav.navbar-nav li {
 	display: none;
 }
 
-/* ===================== User profile */
-
-.join-message {
-	margin-top: 100px;
-	text-align: center;
-}
-
 /* ========================== Signup/Login */
 
 #user_form input.form-control {
@@ -139,7 +137,7 @@ ul.nav.navbar-nav li {
 	font-size: 30px;
 }
 
-/* ==================================== pay-period */
+/* ==================================== Employees */
 
 .employee {
 	text-align: center;
