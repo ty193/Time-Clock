@@ -182,6 +182,10 @@ def pay_period():
 
     form = TimePeriodForm()
 
+    if not g.user:
+        flash("Access unuthorized.", "danger")
+        return redirect("/")
+
     if CURR_USER_KEY in session:
         admin = g.user.admin
 
