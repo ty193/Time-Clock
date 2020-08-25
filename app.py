@@ -64,7 +64,7 @@ def signup():
     #     flash("Access unuthorized.", "danger")
     #     return redirect("/")
 
-    if CURR_USER_KEY in sessin:
+    if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
     form = UserAddForm()
