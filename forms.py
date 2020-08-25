@@ -9,8 +9,8 @@ class UserAddForm(FlaskForm):
 
     name = StringField('Name', validators=[DataRequired()])
     username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[Length(min=6), EqualTo('confirm', message='Password mus match.')])
-    confirm = PasswordField('Password')
+    password = PasswordField('Password', validators=[Length(min=6), EqualTo('confirm', message='Password must match.')])
+    confirm = PasswordField('Confirm password')
     admin = BooleanField("Administrator")
 
 
