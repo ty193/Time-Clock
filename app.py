@@ -57,12 +57,15 @@ def do_logout():
 def signup():
     """Add Employee to the database."""
 
-    if CURR_USER_KEY in session:
-        admin = g.user.admin
+    # if CURR_USER_KEY in session:
+    #     admin = g.user.admin
 
-    if admin != True:
-        flash("Access unuthorized.", "danger")
-        return redirect("/")
+    # if admin != True:
+    #     flash("Access unuthorized.", "danger")
+    #     return redirect("/")
+
+    if CURR_USER_KEY in sessin:
+        del session[CURR_USER_KEY]
 
     form = UserAddForm()
 
