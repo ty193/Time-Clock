@@ -64,9 +64,6 @@ def signup():
         flash("Access unuthorized.", "danger")
         return redirect("/")
 
-    if CURR_USER_KEY not in session:
-        flash("Access unuthorized.", "danger")
-
     form = UserAddForm()
 
     if form.validate_on_submit():
